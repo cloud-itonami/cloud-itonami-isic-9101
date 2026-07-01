@@ -1,0 +1,10 @@
+{:itonami.blueprint/id "cloud-itonami-9101"
+ :itonami.blueprint/name "Community Library and Archive"
+ :itonami.blueprint/isic-rev5 "9101"
+ :itonami.blueprint/domain :culture/library-archive
+ :itonami.blueprint/license "AGPL-3.0-or-later"
+ :itonami.blueprint/social-impact [:knowledge-access :cultural-preservation :inclusion]
+ :itonami.blueprint/governor :library-governor
+ :itonami.blueprint/robotics true
+ :itonami.blueprint/required-technologies [:robotics :identity :forms :dmn :bpmn :audit-ledger]
+ :itonami.blueprint/status :public-oss}
