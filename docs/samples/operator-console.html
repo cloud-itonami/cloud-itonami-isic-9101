@@ -1,16 +1,96 @@
-<html><head><meta charset="utf-8"><title>cloud-itonami · robotics</title><style>table { width: 100%; border-collapse: collapse; font-size: 14px; }
+<html><head><meta charset="utf-8"><title>cloud-itonami-isic-9101 (libraryops.render-html) &middot; library and archive activities</title><style>
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .ok { color: #137a3f; }
 body { font-family: system-ui,-apple-system,sans-serif; margin: 0; color: #1a1a1a; background: #fafafa; }
 header.bar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid #e5e5e5; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
 h2 { margin-top: 0; font-size: 15px; }
-td.amt { font-variant-numeric: tabular-nums; text-align: right; }
 .warn { color: #b25c00; background: #fff8e1; padding: 2px 6px; border-radius: 4px; }
 main { max-width: 980px; margin: 24px auto; padding: 0 20px; }
 header.bar h1 { font-size: 18px; margin: 0; font-weight: 600; }
-.muted { color: #888; }
+.muted { color: #888; font-size: 13px; }
 .critical { color: #fff; background: #b3261e; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
 .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
 .err { color: #b3261e; background: #fbe9e7; padding: 2px 6px; border-radius: 4px; }
 th { font-weight: 600; color: #555; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
-header.bar .badge { margin-left: auto; font-size: 12px; color: #666; }</style></head><body><header class="bar"><h1>Robotics Safety — Operator Console</h1><span class="badge">read-only · governor-gated · never dispatches</span></header><main><section class="card"><h2>Missions</h2><table><thead><tr><th>Mission</th><th>Robot</th><th>Objective</th><th>Status</th></tr></thead><tbody><tr><td>M1</td><td>robot-1</td><td>deliver parcel</td><td>planned</td></tr></tbody></table></section><section class="card"><h2>Action gate</h2><p class="muted">allowed safety classes: low, medium, none, safety-critical</p><table><thead><tr><th>Action</th><th>Kind</th><th>Safety</th><th>Gate</th></tr></thead><tbody><tr><td>A1</td><td>move</td><td class="ok">low</td><td><span class="ok">permit</span></td></tr><tr><td>A2</td><td>grasp</td><td class="critical">safety-critical</td><td><span class="warn">sign-off · safety-critical</span></td></tr></tbody></table></section></main></body></html>
+header.bar .badge { margin-left: auto; font-size: 12px; color: #666; }
+code { font-size: 12px; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+</style></head><body>
+<header class="bar">
+  <h1>Library and archive activities (ISIC 9101) — Operator Console</h1>
+  <span class="badge">read-only sample · governor-gated · lending/preservation always human-approved</span>
+</header>
+<main>
+  <section class="card">
+    <h2>Items</h2>
+    <p class="muted">Demo snapshot — build-time-generated from <code>libraryops.store</code> via <code>libraryops.render-html</code> (<code>clojure -M:dev:render-html</code>), regenerated nightly.</p>
+    <table>
+      <thead><tr><th>Item</th><th>Title</th><th>Material</th><th>Jurisdiction</th><th>Overdue days &times; rate</th><th>Claimed late fee</th><th>Circulation</th><th>Conservator sign-off</th><th>Last op status</th></tr></thead>
+      <tbody>
+        <tr><td>item-1</td><td>Kita Local History</td><td>book</td><td>JPN</td><td>5&times;20.0</td><td>100.0</td><td><span class="ok">circulating</span></td><td><span class="muted">n/a</span></td><td><span class="critical">HARD hold &middot; already-preserved</span></td></tr>
+        <tr><td>item-2</td><td>Atlantis Chronicle</td><td>book</td><td>ATL</td><td>3&times;20.0</td><td>60.0</td><td><span class="ok">circulating</span></td><td><span class="muted">n/a</span></td><td><span class="critical">HARD hold &middot; no-spec-basis</span></td></tr>
+        <tr><td>item-3</td><td>Minami Gazette</td><td>periodical</td><td>JPN</td><td>4&times;25.0</td><td>150.0</td><td><span class="ok">circulating</span></td><td><span class="muted">n/a</span></td><td><span class="critical">HARD hold &middot; late-fee-mismatch</span></td></tr>
+        <tr><td>item-4</td><td>Higashi Deposit Copy</td><td>legal-deposit</td><td>JPN</td><td>0&times;20.0</td><td>0.0</td><td><span class="critical">restricted</span></td><td><span class="muted">n/a</span></td><td><span class="critical">HARD hold &middot; lending-restricted-item</span></td></tr>
+        <tr><td>item-5</td><td>Nishi Illuminated Manuscript</td><td>rare-manuscript</td><td>JPN</td><td>2&times;30.0</td><td>60.0</td><td><span class="ok">circulating</span></td><td><span class="err">missing</span></td><td><span class="critical">HARD hold &middot; conservator-sign-off-missing</span></td></tr>
+        <tr><td>item-6</td><td>Chuo Illuminated Manuscript</td><td>rare-manuscript</td><td>JPN</td><td>1&times;30.0</td><td>30.0</td><td><span class="ok">circulating</span></td><td><span class="ok">obtained</span></td><td><span class="ok">committed</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Draft lending / preservation records</h2>
+    <p class="muted">Unsigned drafts only — the library/archive operator's own act of lending/preserving is outside this actor's authority (see README <code>Actuation</code>).</p>
+    <table>
+      <thead><tr><th>Kind</th><th>Record id</th><th>Item</th><th>Jurisdiction</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>lending</td><td>JPN-LND-000000</td><td>item-1</td><td>JPN</td><td><span class="ok">immutable draft</span></td></tr>
+        <tr><td>lending</td><td>JPN-LND-000001</td><td>item-6</td><td>JPN</td><td><span class="ok">immutable draft</span></td></tr>
+        <tr><td>lending</td><td>JPN-LND-000002</td><td>item-3</td><td>JPN</td><td><span class="ok">immutable draft</span></td></tr>
+        <tr><td>lending</td><td>JPN-LND-000003</td><td>item-5</td><td>JPN</td><td><span class="ok">immutable draft</span></td></tr>
+        <tr><td>preservation</td><td>JPN-PRV-000000</td><td>item-1</td><td>JPN</td><td><span class="ok">immutable draft</span></td></tr>
+        <tr><td>preservation</td><td>JPN-PRV-000001</td><td>item-6</td><td>JPN</td><td><span class="ok">immutable draft</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Action gate (Library Governor)</h2>
+    <p class="muted">HARD holds cannot be overridden by a human approver. Jurisdiction spec-basis, legal-deposit/non-circulating status, claimed-late-fee arithmetic and conservator sign-off are independently recomputed, never trusted from the advisor's proposal; a real item lending or preservation is always a human librarian/archivist/conservator's call, at every rollout phase.</p>
+    <table>
+      <thead><tr><th>Op</th><th>Gate</th></tr></thead>
+      <tbody>
+        <tr><td><code>:item/intake</code></td><td><span class="ok">phase-3 auto-commit when clean, no circulation-facing risk yet</span></td></tr>
+        <tr><td><code>:jurisdiction/assess</code></td><td><span class="warn">ALWAYS human approval &middot; spec-basis independently checked against <code>libraryops.facts</code>, never fabricated</span></td></tr>
+        <tr><td><code>:item/lend</code></td><td><span class="warn">ALWAYS human approval &middot; real act (actuation/lend-item) &middot; legal-deposit/non-circulating status and double-lending independently reverified, never auto at any phase</span></td></tr>
+        <tr><td><code>:item/preserve</code></td><td><span class="warn">ALWAYS human approval &middot; real act (actuation/preserve-item) &middot; claimed-late-fee arithmetic, conservator sign-off and double-preservation independently reverified, never auto at any phase</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Audit ledger (this run)</h2>
+    <p class="muted">Append-only decision-fact log — every proposal, hold and commit this scenario produced.</p>
+    <table>
+      <thead><tr><th>Fact</th><th>Op</th><th>Subject</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr><td>committed</td><td><code>intake</code></td><td>item-1</td><td>id, title</td></tr>
+        <tr><td>committed</td><td><code>assess</code></td><td>item-1</td><td>国立国会図書館法 (National Diet Library Act) 第24条 (納本制度), https://www.ndl.go.jp/jp/collect/deposit/index.html</td></tr>
+        <tr><td>committed</td><td><code>lend</code></td><td>item-1</td><td>item-1</td></tr>
+        <tr><td>committed</td><td><code>preserve</code></td><td>item-1</td><td>item-1</td></tr>
+        <tr><td>committed</td><td><code>intake</code></td><td>item-6</td><td>id, title</td></tr>
+        <tr><td>committed</td><td><code>assess</code></td><td>item-6</td><td>国立国会図書館法 (National Diet Library Act) 第24条 (納本制度), https://www.ndl.go.jp/jp/collect/deposit/index.html</td></tr>
+        <tr><td>committed</td><td><code>lend</code></td><td>item-6</td><td>item-6</td></tr>
+        <tr><td>committed</td><td><code>preserve</code></td><td>item-6</td><td>item-6</td></tr>
+        <tr><td>governor-hold</td><td><code>assess</code></td><td>item-2</td><td>no-spec-basis</td></tr>
+        <tr><td>committed</td><td><code>assess</code></td><td>item-3</td><td>国立国会図書館法 (National Diet Library Act) 第24条 (納本制度), https://www.ndl.go.jp/jp/collect/deposit/index.html</td></tr>
+        <tr><td>committed</td><td><code>lend</code></td><td>item-3</td><td>item-3</td></tr>
+        <tr><td>governor-hold</td><td><code>preserve</code></td><td>item-3</td><td>late-fee-mismatch</td></tr>
+        <tr><td>committed</td><td><code>assess</code></td><td>item-4</td><td>国立国会図書館法 (National Diet Library Act) 第24条 (納本制度), https://www.ndl.go.jp/jp/collect/deposit/index.html</td></tr>
+        <tr><td>governor-hold</td><td><code>lend</code></td><td>item-4</td><td>lending-restricted-item</td></tr>
+        <tr><td>committed</td><td><code>assess</code></td><td>item-5</td><td>国立国会図書館法 (National Diet Library Act) 第24条 (納本制度), https://www.ndl.go.jp/jp/collect/deposit/index.html</td></tr>
+        <tr><td>committed</td><td><code>lend</code></td><td>item-5</td><td>item-5</td></tr>
+        <tr><td>governor-hold</td><td><code>preserve</code></td><td>item-5</td><td>conservator-sign-off-missing</td></tr>
+        <tr><td>governor-hold</td><td><code>lend</code></td><td>item-1</td><td>already-lent</td></tr>
+        <tr><td>governor-hold</td><td><code>preserve</code></td><td>item-1</td><td>already-preserved</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body></html>

@@ -1,0 +1,310 @@
+(ns libraryops.render-html
+  "Build-time HTML renderer for `docs/samples/operator-console.html`.
+
+  Closes flagship checklist item 2 (com-junkawasaki/root ADR-2607189300,
+  Wave5 rollout ledger). Drives the REAL actor stack (`libraryops.
+  operation` -> `libraryops.governor` -> `libraryops.store`) through a
+  scenario adapted from this repo's own `libraryops.sim` demo driver
+  (`clojure -M:dev:run`, confirmed by actually running it before this
+  file was written -- unlike `cloud-itonami-isic-851`'s `schoolops.
+  sim` (an unrelated eldercare template copy-pasted in, whose ids
+  didn't exist in its own seed data), this repo's own sim driver uses
+  ids that DO match `libraryops.store/demo-data`'s seeded items
+  exactly (`item-1`..`item-6`), and every disposition it produces
+  (auto-commit / escalate+approve / HARD hold, and the exact `:rule`
+  on each hold) matches `libraryops.governor`'s own documented checks
+  precisely -- verified by running `clojure -M:dev:test` and by
+  cross-checking every id/op against `store.cljc`'s real seed data
+  field-by-field, so it was safe to reuse rather than author from
+  scratch), covering all six seeded items and rendered deterministically
+  -- no invented numbers, no timestamps in the page content,
+  byte-identical across reruns against the same seed (verified by
+  diffing two consecutive runs before shipping).
+
+  Usage: `clojure -M:dev:render-html [out-file]`
+  (default `docs/samples/operator-console.html`)."
+  (:require [clojure.string :as str]
+            [libraryops.store :as store]
+            [libraryops.operation :as op]
+            [langgraph.graph :as g]))
+
+;; ----------------------------- harness (unchanged across every repo
+;; in this cluster -- do not rewrite, only copy) -----------------------
+
+(def ^:private operator
+  {:actor-id "op-1" :actor-role :librarian :phase 3})
+
+(defn- exec! [actor tid request]
+  (g/run* actor {:request request :context operator} {:thread-id tid}))
+
+(defn- approve! [actor tid]
+  (g/run* actor {:approval {:status :approved :by "op-1"}}
+          {:thread-id tid :resume? true}))
+
+(defn run-demo!
+  "Runs a fresh seeded store through a scenario mixing every disposition
+  this actor can reach, using ONLY real item ids from `libraryops.
+  store/demo-data`:
+
+  item-1 (JPN, Kita Local History, clean, no conservator required)
+  walks the full clean lifecycle: an `:item/intake` directory-
+  normalization patch is a phase-3, no-circulation-facing-risk
+  auto-commit (governor clean, `:item/intake` is the ONLY op in phase
+  3's `:auto` set); `:jurisdiction/assess` (JPN has a real spec-basis
+  in `libraryops.facts`) ALWAYS escalates (not in the `:auto` set at
+  any phase) and is approved by a human librarian; `:item/lend` and
+  `:item/preserve` -- the two REAL-WORLD actuation events this actor
+  performs (a real item physically leaving the premises / a real
+  physical treatment applied) -- ALSO ALWAYS escalate (the governor's
+  own `high-stakes` gate AND the phase table agree, independently,
+  that actuation is never auto, at any phase) and are approved,
+  producing one draft lending record (`JPN-LND-000000`) and one draft
+  preservation record (`JPN-PRV-000000`).
+
+  item-6 (JPN, Chuo Illuminated Manuscript, clean, conservator required
+  AND obtained) walks the same intake -> assess -> approve shape, then
+  lend -> approve and preserve -> approve, demonstrating the
+  CONDITIONAL conservator-sign-off check passing cleanly (not every
+  item requires one -- item-6 does, and has it on file).
+
+  Then six DISTINCT HARD-hold reasons, none of which ever reach a
+  human (a human approver cannot override a HARD violation) -- using
+  the remaining seeded items exactly as `libraryops.governor`'s own
+  docstring documents them:
+    - item-2 (jurisdiction ATL, not in `libraryops.facts/catalog`):
+      `:jurisdiction/assess` HARD-holds on `:no-spec-basis` -- the
+      advisor may not invent a jurisdiction's legal-deposit/
+      conservation-standards requirements.
+    - item-3 (JPN, Minami Gazette, claimed-late-fee 150.0 but
+      days-overdue 4 x daily-rate 25.0 = 100.0): assessed and lent
+      first (clean escalate+approve, so evidence is on file and this
+      HARD hold below is isolated to the late-fee-mismatch check
+      alone), then `:item/preserve` HARD-holds on `:late-fee-mismatch`
+      -- the governor independently recomputes the item's own claimed
+      late fee against days-overdue x daily-rate, never trusting the
+      advisor's confidence alone.
+    - item-4 (JPN, Higashi Deposit Copy, `:lending-restricted? true`
+      -- a legal-deposit/non-circulating item): assessed, then
+      `:item/lend` HARD-holds on `:lending-restricted-item` -- this
+      vertical's own flagship new check (grep-verified absent
+      fleet-wide before this actor).
+    - item-5 (JPN, Nishi Illuminated Manuscript, `:requires-
+      conservator-sign-off? true` but `:conservator-sign-off-obtained?
+      false`): assessed and lent first (clean escalate+approve), then
+      `:item/preserve` HARD-holds on `:conservator-sign-off-missing`
+      -- CONDITIONAL on the item's own ground truth, independently
+      re-verified.
+    - item-1 lent a SECOND time: `:item/lend` HARD-holds on
+      `:already-lent` -- the double-lending guard, off a dedicated
+      `:lent?` fact, never a `:status` value.
+    - item-1 preserved a SECOND time: `:item/preserve` HARD-holds on
+      `:already-preserved` -- the double-preservation guard, off a
+      dedicated `:preserved?` fact.
+
+  Returns the resulting store -- every field `render` below reads is
+  real governor/store output, not a hand-typed copy."
+  []
+  (let [db (store/seed-db)
+        actor (op/build db)]
+
+    ;; item-1: clean directory-normalization patch -- phase-3
+    ;; auto-commit, no circulation-facing risk yet.
+    (exec! actor "i1-intake" {:op :item/intake :subject "item-1"
+                               :patch {:id "item-1" :title "Kita Local History"}})
+    (exec! actor "i1-assess" {:op :jurisdiction/assess :subject "item-1"})
+    (approve! actor "i1-assess")
+    (exec! actor "i1-lend" {:op :item/lend :subject "item-1"})
+    (approve! actor "i1-lend")
+    (exec! actor "i1-preserve" {:op :item/preserve :subject "item-1"})
+    (approve! actor "i1-preserve")
+
+    ;; item-6: clean directory-normalization patch, then a clean
+    ;; lend + preserve -- conservator sign-off required AND on file.
+    (exec! actor "i6-intake" {:op :item/intake :subject "item-6"
+                               :patch {:id "item-6" :title "Chuo Illuminated Manuscript"}})
+    (exec! actor "i6-assess" {:op :jurisdiction/assess :subject "item-6"})
+    (approve! actor "i6-assess")
+    (exec! actor "i6-lend" {:op :item/lend :subject "item-6"})
+    (approve! actor "i6-lend")
+    (exec! actor "i6-preserve" {:op :item/preserve :subject "item-6"})
+    (approve! actor "i6-preserve")
+
+    ;; item-2 (ATL): no official spec-basis in libraryops.facts ->
+    ;; HARD hold on :no-spec-basis, never reaches a human.
+    (exec! actor "i2-assess" {:op :jurisdiction/assess :subject "item-2" :no-spec? true})
+
+    ;; item-3: assess + lend JPN first (clean escalate+approve) so
+    ;; evidence is on file and the late-fee-mismatch hold below is
+    ;; isolated.
+    (exec! actor "i3-assess" {:op :jurisdiction/assess :subject "item-3"})
+    (approve! actor "i3-assess")
+    (exec! actor "i3-lend" {:op :item/lend :subject "item-3"})
+    (approve! actor "i3-lend")
+    (exec! actor "i3-preserve" {:op :item/preserve :subject "item-3"})
+
+    ;; item-4: assess, then a legal-deposit/non-circulating item ->
+    ;; HARD hold on :lending-restricted-item.
+    (exec! actor "i4-assess" {:op :jurisdiction/assess :subject "item-4"})
+    (approve! actor "i4-assess")
+    (exec! actor "i4-lend" {:op :item/lend :subject "item-4"})
+
+    ;; item-5: assess + lend first (clean escalate+approve), then a
+    ;; missing conservator sign-off on a special-collection item ->
+    ;; HARD hold on :conservator-sign-off-missing.
+    (exec! actor "i5-assess" {:op :jurisdiction/assess :subject "item-5"})
+    (approve! actor "i5-assess")
+    (exec! actor "i5-lend" {:op :item/lend :subject "item-5"})
+    (approve! actor "i5-lend")
+    (exec! actor "i5-preserve" {:op :item/preserve :subject "item-5"})
+
+    ;; item-1 lent/preserved a SECOND time -> double-actuation guards.
+    (exec! actor "i1-lend-again" {:op :item/lend :subject "item-1"})
+    (exec! actor "i1-preserve-again" {:op :item/preserve :subject "item-1"})
+
+    db))
+
+;; ----------------------------- rendering -----------------------------
+
+(defn- esc [v]
+  (-> (str v)
+      (str/replace "&" "&amp;")
+      (str/replace "<" "&lt;")
+      (str/replace ">" "&gt;")))
+
+(defn- last-fact-for [ledger subject-id]
+  (last (filter #(= (:subject %) subject-id) ledger)))
+
+(defn- status-cell [ledger subject-id]
+  (let [f (last-fact-for ledger subject-id)]
+    (cond
+      (nil? f) "<span class=\"muted\">no activity</span>"
+      (= :committed (:t f)) "<span class=\"ok\">committed</span>"
+      (= :approval-granted (:t f)) "<span class=\"ok\">approved &amp; committed</span>"
+      (= :governor-hold (:t f))
+      (let [rule (-> f :violations first :rule)]
+        (str "<span class=\"critical\">HARD hold &middot; " (esc (name (or rule :unknown))) "</span>"))
+      (= :approval-requested (:t f)) "<span class=\"warn\">awaiting approval</span>"
+      :else "<span class=\"muted\">in progress</span>")))
+
+(defn- item-row [ledger {:keys [id title material-type jurisdiction days-overdue daily-rate
+                                 claimed-late-fee lending-restricted?
+                                 requires-conservator-sign-off? conservator-sign-off-obtained?]}]
+  (format "        <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s&times;%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+          (esc id) (esc title) (esc (name material-type)) (esc jurisdiction)
+          (esc days-overdue) (esc daily-rate) (esc claimed-late-fee)
+          (if lending-restricted?
+            "<span class=\"critical\">restricted</span>"
+            "<span class=\"ok\">circulating</span>")
+          (cond
+            (not requires-conservator-sign-off?) "<span class=\"muted\">n/a</span>"
+            conservator-sign-off-obtained? "<span class=\"ok\">obtained</span>"
+            :else "<span class=\"err\">missing</span>")
+          (status-cell ledger id)))
+
+(defn- ledger-row [{:keys [t op subject disposition basis]}]
+  (format "        <tr><td>%s</td><td><code>%s</code></td><td>%s</td><td>%s</td></tr>"
+          (esc (name t)) (esc (name (or op :n-a))) (esc subject)
+          (esc (or (some->> basis (map #(if (keyword? %) (name %) %)) (str/join ", "))
+                    (some-> disposition name) ""))))
+
+(defn- record-row [prefix {:strs [record_id item_id jurisdiction kind immutable]}]
+  (format "        <tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+          (esc prefix) (esc record_id) (esc item_id) (esc jurisdiction)
+          (if immutable "<span class=\"ok\">immutable draft</span>" (esc kind))))
+
+(def ^:private action-gate-rows
+  ;; Static description of this actor's own op contract
+  ;; (`libraryops.governor`/`libraryops.phase`) -- documentation of
+  ;; fixed behavior, not runtime telemetry, so it is legitimately
+  ;; hand-described rather than derived from a live run.
+  ["        <tr><td><code>:item/intake</code></td><td><span class=\"ok\">phase-3 auto-commit when clean, no circulation-facing risk yet</span></td></tr>"
+   "        <tr><td><code>:jurisdiction/assess</code></td><td><span class=\"warn\">ALWAYS human approval &middot; spec-basis independently checked against <code>libraryops.facts</code>, never fabricated</span></td></tr>"
+   "        <tr><td><code>:item/lend</code></td><td><span class=\"warn\">ALWAYS human approval &middot; real act (actuation/lend-item) &middot; legal-deposit/non-circulating status and double-lending independently reverified, never auto at any phase</span></td></tr>"
+   "        <tr><td><code>:item/preserve</code></td><td><span class=\"warn\">ALWAYS human approval &middot; real act (actuation/preserve-item) &middot; claimed-late-fee arithmetic, conservator sign-off and double-preservation independently reverified, never auto at any phase</span></td></tr>"])
+
+(defn render
+  "Renders the full operator-console.html document from a store `db`
+  that has already run `run-demo!` (or any other real scenario)."
+  [db]
+  (let [ledger (vec (store/ledger db))
+        items (store/all-items db)
+        item-rows (str/join "\n" (map (partial item-row ledger) items))
+        ledger-rows (str/join "\n" (map ledger-row ledger))
+        lending-rows (str/join "\n" (map (partial record-row "lending") (store/lending-history db)))
+        preservation-rows (str/join "\n" (map (partial record-row "preservation") (store/preservation-history db)))]
+    (str
+     "<html><head><meta charset=\"utf-8\"><title>cloud-itonami-isic-9101 (libraryops.render-html) &middot; library and archive activities</title><style>\n"
+     "table { width: 100%; border-collapse: collapse; font-size: 14px; }\n"
+     ".ok { color: #137a3f; }\n"
+     "body { font-family: system-ui,-apple-system,sans-serif; margin: 0; color: #1a1a1a; background: #fafafa; }\n"
+     "header.bar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid #e5e5e5; }\n"
+     "th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }\n"
+     "h2 { margin-top: 0; font-size: 15px; }\n"
+     ".warn { color: #b25c00; background: #fff8e1; padding: 2px 6px; border-radius: 4px; }\n"
+     "main { max-width: 980px; margin: 24px auto; padding: 0 20px; }\n"
+     "header.bar h1 { font-size: 18px; margin: 0; font-weight: 600; }\n"
+     ".muted { color: #888; font-size: 13px; }\n"
+     ".critical { color: #fff; background: #b3261e; padding: 2px 6px; border-radius: 4px; font-weight: 600; }\n"
+     ".card { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-bottom: 16px; }\n"
+     ".err { color: #b3261e; background: #fbe9e7; padding: 2px 6px; border-radius: 4px; }\n"
+     "th { font-weight: 600; color: #555; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }\n"
+     "header.bar .badge { margin-left: auto; font-size: 12px; color: #666; }\n"
+     "code { font-size: 12px; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }\n"
+     "</style></head><body>\n"
+     "<header class=\"bar\">\n"
+     "  <h1>Library and archive activities (ISIC 9101) — Operator Console</h1>\n"
+     "  <span class=\"badge\">read-only sample · governor-gated · lending/preservation always human-approved</span>\n"
+     "</header>\n"
+     "<main>\n"
+     "  <section class=\"card\">\n"
+     "    <h2>Items</h2>\n"
+     "    <p class=\"muted\">Demo snapshot — build-time-generated from <code>libraryops.store</code> via <code>libraryops.render-html</code> (<code>clojure -M:dev:render-html</code>), regenerated nightly.</p>\n"
+     "    <table>\n"
+     "      <thead><tr><th>Item</th><th>Title</th><th>Material</th><th>Jurisdiction</th><th>Overdue days &times; rate</th><th>Claimed late fee</th><th>Circulation</th><th>Conservator sign-off</th><th>Last op status</th></tr></thead>\n"
+     "      <tbody>\n"
+     item-rows "\n"
+     "      </tbody>\n"
+     "    </table>\n"
+     "  </section>\n"
+     "  <section class=\"card\">\n"
+     "    <h2>Draft lending / preservation records</h2>\n"
+     "    <p class=\"muted\">Unsigned drafts only — the library/archive operator's own act of lending/preserving is outside this actor's authority (see README <code>Actuation</code>).</p>\n"
+     "    <table>\n"
+     "      <thead><tr><th>Kind</th><th>Record id</th><th>Item</th><th>Jurisdiction</th><th>Status</th></tr></thead>\n"
+     "      <tbody>\n"
+     lending-rows (when (seq lending-rows) "\n")
+     preservation-rows "\n"
+     "      </tbody>\n"
+     "    </table>\n"
+     "  </section>\n"
+     "  <section class=\"card\">\n"
+     "    <h2>Action gate (Library Governor)</h2>\n"
+     "    <p class=\"muted\">HARD holds cannot be overridden by a human approver. Jurisdiction spec-basis, legal-deposit/non-circulating status, claimed-late-fee arithmetic and conservator sign-off are independently recomputed, never trusted from the advisor's proposal; a real item lending or preservation is always a human librarian/archivist/conservator's call, at every rollout phase.</p>\n"
+     "    <table>\n"
+     "      <thead><tr><th>Op</th><th>Gate</th></tr></thead>\n"
+     "      <tbody>\n"
+     (str/join "\n" action-gate-rows) "\n"
+     "      </tbody>\n"
+     "    </table>\n"
+     "  </section>\n"
+     "  <section class=\"card\">\n"
+     "    <h2>Audit ledger (this run)</h2>\n"
+     "    <p class=\"muted\">Append-only decision-fact log — every proposal, hold and commit this scenario produced.</p>\n"
+     "    <table>\n"
+     "      <thead><tr><th>Fact</th><th>Op</th><th>Subject</th><th>Basis</th></tr></thead>\n"
+     "      <tbody>\n"
+     ledger-rows "\n"
+     "      </tbody>\n"
+     "    </table>\n"
+     "  </section>\n"
+     "</main>\n"
+     "</body></html>\n")))
+
+(defn -main [& args]
+  (let [out (or (first args) "docs/samples/operator-console.html")
+        db (run-demo!)
+        html (render db)]
+    (spit out html)
+    (println "wrote" out "(" (count (store/ledger db)) "ledger facts,"
+             (count (store/lending-history db)) "lending drafts,"
+             (count (store/preservation-history db)) "preservation drafts )")))
