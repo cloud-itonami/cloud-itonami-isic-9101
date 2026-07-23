@@ -1,4 +1,4 @@
-{:itonami.blueprint/id "cloud-itonami-9101"
+{:itonami.blueprint/id "cloud-itonami-isic-9101"
  :itonami.blueprint/name "Community Library and Archive"
  :itonami.blueprint/isic-rev5 "9101"
  :itonami.blueprint/domain :culture/library-archive
