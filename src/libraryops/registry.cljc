@@ -25,7 +25,7 @@
   operator would keep, not the act of lending an item or preserving
   it itself (that is `libraryops.operation`'s `:item/lend`/`:item/
   preserve`, always human-gated -- see README `Actuation`)."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (defn- unsigned-certificate
   "Every certificate this actor produces is UNSIGNED -- signature is
@@ -99,7 +99,7 @@
     (throw (ex-info "lending: jurisdiction required" {})))
   (when (< sequence 0)
     (throw (ex-info "lending: sequence must be >= 0" {})))
-  (let [lending-number (str (str/upper-case jurisdiction) "-LND-" (zero-pad sequence 6))
+  (let [lending-number (str (str/upper jurisdiction) "-LND-" (zero-pad sequence 6))
         record {"record_id" lending-number
                 "kind" "lending-draft"
                 "item_id" item-id
@@ -125,7 +125,7 @@
     (throw (ex-info "preservation: jurisdiction required" {})))
   (when (< sequence 0)
     (throw (ex-info "preservation: sequence must be >= 0" {})))
-  (let [preservation-number (str (str/upper-case jurisdiction) "-PRV-" (zero-pad sequence 6))
+  (let [preservation-number (str (str/upper jurisdiction) "-PRV-" (zero-pad sequence 6))
         record {"record_id" preservation-number
                 "kind" "preservation-draft"
                 "item_id" item-id
