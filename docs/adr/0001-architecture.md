@@ -126,7 +126,7 @@ real status-lifecycle bug (ADR-2607071320).
 `libraryops.store/Store` is implemented by both `MemStore` (atom-
 backed, default for dev/tests/demo) and `DatomicStore` (`langchain.
 db`-backed), proven to satisfy the same contract in
-`test/libraryops/store_contract_test.clj`.
+`test/libraryops/store_contract_test.kotoba`.
 
 ### Decision 9: no bespoke domain capability lib, and no `blueprint.edn` field-sync fixes needed beyond `:optional-technologies`
 
@@ -172,7 +172,7 @@ an item or auto-preserving it).
   application overall) and `conservator-sign-off-missing?` (89th
   distinct application overall, the FOURTEENTH conditional variant).
 - `MemStore` ‖ `DatomicStore` parity is proven by
-  `test/libraryops/store_contract_test.clj`.
+  `test/libraryops/store_contract_test.kotoba`.
 - 39 tests / 176 assertions pass; lint is clean; the demo
   (`clojure -M:dev:run`) walks two clean lend+preserve lifecycles (no
   conservator required, conservator required-and-obtained), plus four
