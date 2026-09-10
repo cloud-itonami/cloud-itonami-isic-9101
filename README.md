@@ -164,14 +164,14 @@ and-ruled-out precedent).
 
 | File | Role |
 |---|---|
-| `src/libraryops/store.cljc` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + lending AND preservation history (dual history). The double-actuation guard checks dedicated `:lent?`/`:preserved?` booleans rather than a `:status` value |
-| `src/libraryops/registry.cljc` | Lending/preservation draft records, plus `late-fee-matches-claim?` -- an honest reapplication of the SAME ground-truth-recompute discipline every sibling actor's own cost/total-matching check establishes |
-| `src/libraryops/facts.cljc` | Per-jurisdiction legal-deposit AND professional-conservation catalog with an official spec-basis citation per entry, honest coverage reporting -- ALL FOUR seeded jurisdictions have a conservation-standards sub-citation here |
-| `src/libraryops/libraryopsllm.cljc` | **LibraryOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/jurisdiction-assessment/lending/preservation proposals |
-| `src/libraryops/governor.cljc` | **Library Governor** -- 5 HARD checks (spec-basis · evidence-incomplete · lending-restricted-item, FLAGSHIP NEW, the 88th unconditional-evaluation-discipline grounding · late-fee-mismatch · conservator-sign-off-missing, CONDITIONAL, the 89th grounding) + 2 double-actuation guards + 1 soft (confidence/actuation gate) |
-| `src/libraryops/phase.cljc` | **Phase 0→3** -- read-only → assisted intake → assisted assess → supervised (lend/preserve always human; item intake is the ONLY auto-eligible op, no direct circulation-facing risk) |
-| `src/libraryops/operation.cljc` | **OperationActor** -- langgraph StateGraph |
-| `src/libraryops/sim.cljc` | demo driver |
+| `src/libraryops/store.kotoba` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + lending AND preservation history (dual history). The double-actuation guard checks dedicated `:lent?`/`:preserved?` booleans rather than a `:status` value |
+| `src/libraryops/registry.kotoba` | Lending/preservation draft records, plus `late-fee-matches-claim?` -- an honest reapplication of the SAME ground-truth-recompute discipline every sibling actor's own cost/total-matching check establishes |
+| `src/libraryops/facts.kotoba` | Per-jurisdiction legal-deposit AND professional-conservation catalog with an official spec-basis citation per entry, honest coverage reporting -- ALL FOUR seeded jurisdictions have a conservation-standards sub-citation here |
+| `src/libraryops/libraryopsllm.kotoba` | **LibraryOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/jurisdiction-assessment/lending/preservation proposals |
+| `src/libraryops/governor.kotoba` | **Library Governor** -- 5 HARD checks (spec-basis · evidence-incomplete · lending-restricted-item, FLAGSHIP NEW, the 88th unconditional-evaluation-discipline grounding · late-fee-mismatch · conservator-sign-off-missing, CONDITIONAL, the 89th grounding) + 2 double-actuation guards + 1 soft (confidence/actuation gate) |
+| `src/libraryops/phase.kotoba` | **Phase 0→3** -- read-only → assisted intake → assisted assess → supervised (lend/preserve always human; item intake is the ONLY auto-eligible op, no direct circulation-facing risk) |
+| `src/libraryops/operation.kotoba` | **OperationActor** -- langgraph StateGraph |
+| `src/libraryops/sim.kotoba` | demo driver |
 | `test/libraryops/*_test.clj` | governor contract · phase invariants · store parity · registry conformance · facts coverage |
 
 ## Business-process coverage (honest)
