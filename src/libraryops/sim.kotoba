@@ -1,5 +1,5 @@
 (ns libraryops.sim
-  "Demo driver -- `clojure -M:dev:run`. Walks a clean item through
+  "Demo driver -- `kbb -M:dev:run`. Walks a clean item through
   intake -> jurisdiction assessment -> item lending (escalate/
   approve/commit) -> item preservation (escalate/approve/commit),
   then a SEPARATE clean conservator-required item through the same

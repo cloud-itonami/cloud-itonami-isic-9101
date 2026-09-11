@@ -174,7 +174,7 @@ an item or auto-preserving it).
 - `MemStore` ‖ `DatomicStore` parity is proven by
   `test/libraryops/store_contract_test.kotoba`.
 - 39 tests / 176 assertions pass; lint is clean; the demo
-  (`clojure -M:dev:run`) walks two clean lend+preserve lifecycles (no
+  (`kbb -M:dev:run`) walks two clean lend+preserve lifecycles (no
   conservator required, conservator required-and-obtained), plus four
   HARD-hold scenarios, end-to-end.
 - `blueprint.edn` needed a genuine field-sync fix this time (a
